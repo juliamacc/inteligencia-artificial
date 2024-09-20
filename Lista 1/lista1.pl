@@ -1,7 +1,5 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Sistema Especialista para diagnosticar doenças psiquiátricas %%
-%%           Grupo: Julia, Sartori, Sofia                       %%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Sistema Especialista para diagnosticar doenças psiquiátricas
+% Grupo: Julia, Sartori, Sofia 
 
 /*
 doenças: fobias específicas, fobia social, t. ansiedade generalizada(tag), toc, bipolar, t. explosivo interm., borderline, esquizofrenia, tdah, depressão maior, distimia
@@ -37,26 +35,41 @@ tratamento(tdah, [tcc, psicoeducacao, medicamentos_estimulantes]).
 tratamento(depressao, [tcc, terapia_interpessoal, antidepressivos]).
 tratamento(distimia, [tcc, antidepressivos]).
 
-% Verifica se o paciente tem a maioria dos sintomas da doença
-diagnostico(Paciente, Doenca) :-
-    findall(Sintoma, sintoma(Paciente, Sintoma), SintomasPaciente), % sintomas do paciente
-    doenca(Doenca, SintomasDoenca),                            % sintomas de doença específica
-    intersecao(SintomasPaciente, SintomasDoenca, SintomasEmComum),
-    length(SintomasEmComum, N),               % conta quantos sintomas tem em comum
-    N >= 3.                                   % ajusta diagnostico para 3 ou mais sintomas                      
+% Verifica se uma doença corresponde a uma lista de sintomas
+diagnostico(SintomasPessoa, Doenca, Tratamentos) :-
+    doenca(Doenca, SintomasDoenca),
+    subset(SintomasDoenca, SintomasPessoa), % Verifica se os sintomas da doença estão contidos nos sintomas da pessoa
+    tratamento(Doenca, Tratamentos).
 
+% Exemplo de como usar o diagnóstico
+verificar_doenca(Sintomas) :-
+    diagnostico(Sintomas, Doenca, Tratamentos),
+    write('Diagnóstico: '), write(Doenca), nl,
+    write('Tratamentos recomendados: '), write(Tratamentos), nl.
 
-% tratamento_recomendado(X, Tratamento) recomenda o tratamento baseado no diagnóstico da doença
-tratamento_recomendado(Paciente, Tratamento) :-
-    diagnostico(Paciente, Doenca),
-    tratamento(Doenca, Tratamento).
+:- discontiguous verificar_doenca/1.
 
+% Conta quantos elementos de uma lista estão em outra lista
+conta_sintomas([], _, 0).
+conta_sintomas([S|SintomasDoenca], SintomasPessoa, N) :-
+    member(S, SintomasPessoa), % Verifica se o sintoma da doença está na lista de sintomas da pessoa
+    conta_sintomas(SintomasDoenca, SintomasPessoa, N1),
+    N is N1 + 1.
+conta_sintomas([_|SintomasDoenca], SintomasPessoa, N) :-
+    conta_sintomas(SintomasDoenca, SintomasPessoa, N). % Se o sintoma não está presente, apenas continue
 
-% Teste de paciente
-% sintoma(X, Sintoma) sintomas do paciente X
-sintoma(mario, coracao_acelerado).
-sintoma(mario, suor_excessivo).
-sintoma(mario, tremores).
+% Verifica se uma doença corresponde a uma lista de sintomas (com pelo menos N sintomas coincidentes)
+diagnostico(SintomasPessoa, Doenca, Tratamentos, MinimoSintomas) :-
+    doenca(Doenca, SintomasDoenca),
+    conta_sintomas(SintomasDoenca, SintomasPessoa, N),
+    N >= MinimoSintomas,
+    tratamento(Doenca, Tratamentos).
 
-% Teste no terminal
-% ?- tratamento_recomendado(mario, Tratamento).
+% Exemplo de como usar o diagnóstico
+verificar_doenca(Sintomas) :-
+    diagnostico(Sintomas, Doenca, Tratamentos, 3), % Define o número mínimo de sintomas para o diagnóstico
+    write('Diagnóstico: '), write(Doenca), nl,
+    write('Tratamentos recomendados: '), write(Tratamentos), nl.
+
+% Teste de entrada:
+% ?- verificar_doenca([tremores, suor_excessivo, coracao_acelerado]).
