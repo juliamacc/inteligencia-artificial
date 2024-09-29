@@ -17,6 +17,7 @@
    (slot comportamento_autodestrutivo (default nil))
    (slot alterações_de_sono_e_apetite (default nil))
    (slot baixa_energia_e_apatia (default nil))
+   (slot prejuizos_sociais (default nil))
 )
 
 (defrule get_alterações_de_sono_e_apetite
